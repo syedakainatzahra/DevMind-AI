@@ -1,0 +1,68 @@
+:root {
+
+  /* App */
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef2f7;
+
+  /* Sidebar */
+  --sidebar: #ffffff;
+
+  /* Cards */
+  --card: #ffffff;
+  --card-hover: #f3f6fb;
+
+  /* Text */
+  --text: #111827;
+  --text-secondary: #6b7280;
+
+  /* Borders */
+  --border: #d8dde7;
+
+  /* Accent */
+  --primary: #18d4ff;
+
+  /* Inputs */
+  --input: #ffffff;
+
+  /* Buttons */
+  --button: #18d4ff;
+  --button-hover: #11b6dc;
+
+  /* Icons */
+  --icon: #6b7280;
+  --icon-hover: #111827;
+}
+
+[data-theme="dark"] {
+
+  --bg: #0B1018;
+
+  --surface: #111827;
+
+  --surface-2: #182233;
+
+  --sidebar: #0B1018;
+
+  --card: #111827;
+
+  --card-hover: #182233;
+
+  --text: #ffffff;
+
+  --text-secondary: #8b95a7;
+
+  --border: #293548;
+
+  --primary: #18d4ff;
+
+  --input: #111827;
+
+  --button: #18d4ff;
+
+  --button-hover: #11b6dc;
+
+  --icon: #7b8699;
+
+  --icon-hover: white;
+}

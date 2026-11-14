@@ -1,0 +1,149 @@
+
+/* Tailwind CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DARK THEME */
+:root,
+[data-theme="dark"] {
+  --bg: #0b1018;
+  --surface: #111c2b;
+  --surface-secondary: #182638;
+  --surface-hover: #202f42;
+  --border: #263449;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --accent: #06b6d4;
+  --accent-hover: #0891b2;
+  --input-bg: #111827;
+  --message-user: #142638;
+  --message-ai: #111c2b;
+  --scrollbar: #334155;
+}
+
+/* LIGHT THEME */
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-secondary: #f1f5f9;
+  --surface-hover: #e2e8f0;
+  --border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --accent: #0891b2;
+  --accent-hover: #0e7490;
+  --input-bg: #ffffff;
+  --message-user: #e0f2fe;
+  --message-ai: #ffffff;
+  --scrollbar: #cbd5e1;
+}
+
+/* GLOBAL STYLES */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ANIMATED AURORA BACKGROUND */
+.chat-ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.chat-orb {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.12;
+  animation: auroraFloat 14s ease-in-out infinite alternate;
+}
+
+.chat-orb-one {
+  background: #06b6d4;
+  top: 5%;
+  left: 5%;
+}
+
+.chat-orb-two {
+  background: #3b82f6;
+  right: 5%;
+  bottom: 5%;
+  animation-delay: -7s;
+}
+
+.chat-orb-three {
+  background: #6366f1;
+  width: 280px;
+  height: 280px;
+  top: 40%;
+  left: 45%;
+  animation-delay: -3s;
+}
+
+@keyframes auroraFloat {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(70px, 45px) scale(1.2);
+  }
+
+  100% {
+    transform: translate(-40px, -35px) scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-orb {
+    animation: none;
+  }
+}
