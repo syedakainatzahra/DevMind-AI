@@ -14,91 +14,62 @@ from Backend.config.settings import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
 
-
-# ==========================================
 # Password Hashing
-# ==========================================
-
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto",
 )
 
-
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def verify_password(
-    plain_password: str,
-    hashed_password: str,
-) -> bool:
-    return pwd_context.verify(
-        plain_password,
-        hashed_password,
-    )
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
 
 
-# ==========================================
 # JWT Token
-# ==========================================
-
 def create_access_token(data: dict) -> str:
-
     to_encode = data.copy()
 
     expire = datetime.utcnow() + timedelta(
         minutes=ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
-    to_encode.update({
-        "exp": expire
-    })
+    to_encode.update({"exp": expire})
 
-    encoded_jwt = jwt.encode(
+    return jwt.encode(
         to_encode,
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
 
-    return encoded_jwt
-
 
 def verify_access_token(token: str) -> Optional[dict]:
-
     try:
-        payload = jwt.decode(
+        return jwt.decode(
             token,
             SECRET_KEY,
             algorithms=[ALGORITHM],
         )
-
-        return payload
-
     except JWTError:
         return None
 
 
-# ==========================================
 # Current Authenticated User
-# ==========================================
-
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ):
-
     if not credentials:
         raise HTTPException(
             status_code=401,
             detail="Authentication required."
         )
 
-    payload = verify_access_token(
-        credentials.credentials
-    )
+    payload = verify_access_token(credentials.credentials)
 
     if not payload or not payload.get("email"):
         raise HTTPException(
