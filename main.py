@@ -1,8 +1,6 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-import os
 
 from Backend.routes.chat import router as chat_router
 from Backend.routes.thread import router as thread_router
@@ -15,14 +13,14 @@ app = FastAPI(
     description="""
     DevMind AI is a FastAPI-powered AI platform that provides:
 
-    • AI Assistant
-    • Python Interviewer
-    • Java Interviewer
-    • React Interviewer
-    • HR Interviewer
-    • Software Debugger
-    • Resume Reviewer
-    • Career Coach
+    - AI Assistant
+    - Python Interviewer
+    - Java Interviewer
+    - React Interviewer
+    - HR Interviewer
+    - Software Debugger
+    - Resume Reviewer
+    - Career Coach
 
     Powered by Google Gemini and MongoDB.
     """,
@@ -38,18 +36,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["X-Thread-ID"],
-)
-
-
-# Create uploads folder
-os.makedirs("uploads", exist_ok=True)
-
-
-# Serve uploaded files
-app.mount(
-    "/uploads",
-    StaticFiles(directory="uploads"),
-    name="uploads"
 )
 
 

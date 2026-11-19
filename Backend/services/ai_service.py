@@ -259,6 +259,7 @@ def read_uploaded_file(file: UploadFile):
 # ==========================================
 
 
+
 def stream_ai(
     thread_id: str,
     mode: str,
@@ -267,25 +268,23 @@ def stream_ai(
     file_url: str = None,
     user_email: str = None,
 ):
-
     if not user_email:
         raise ValueError("Chat identity is required.")
 
-    # ======================================
-    # Verify Thread Ownership BEFORE AI
-    # ======================================
-
+    # Verify thread ownership
     existing = threads_collection.find_one({
+        "thread_id": thread_id,
+        "user_email": user_email
+    })
+
+    conflicting_thread = threads_collection.find_one({
         "thread_id": thread_id
     })
 
-    if existing and existing.get("user_email") != user_email:
+    if conflicting_thread and not existing:
         raise ValueError("Chat ownership conflict.")
 
-    # ======================================
-    # Load Conversation History
-    # ======================================
-
+    # Load conversation history
     previous_chats = list(
         chat_collection.find({
             "thread_id": thread_id,
@@ -297,29 +296,17 @@ def stream_ai(
 
     for chat in previous_chats:
         history += f"""
-
 User:
 {chat.get("user_message", "")}
 
 Assistant:
 {chat.get("bot_response", "")}
-
 """
 
-    # ======================================
-    # Build Prompt
-    # ======================================
+    # Build prompt
+    prompt = build_prompt(mode, history, message)
 
-    prompt = build_prompt(
-        mode,
-        history,
-        message,
-    )
-
-    # ======================================
-    # Process Uploaded File
-    # ======================================
-
+    # Process uploaded file once
     uploaded_text = None
     contents = [prompt]
 
@@ -327,11 +314,7 @@ Assistant:
         parsed_file = read_uploaded_file(file)
 
         if isinstance(parsed_file, Image.Image):
-            contents = [
-                prompt,
-                parsed_file,
-            ]
-
+            contents = [prompt, parsed_file]
         else:
             uploaded_text = f"""
 
@@ -342,17 +325,10 @@ Filename:
 
 Content:
 {parsed_file}
-
 """
+            contents = [prompt + uploaded_text]
 
-            contents = [
-                prompt + uploaded_text
-            ]
-
-    # ======================================
-    # Generate Gemini Response
-    # ======================================
-
+    # Generate Gemini response once
     stream = client.models.generate_content_stream(
         model="gemini-2.5-flash",
         contents=contents,
@@ -361,29 +337,22 @@ Content:
     full_response = ""
 
     for chunk in stream:
-        text = getattr(chunk, "text", None)
+        response_text = getattr(chunk, "text", None)
 
-        if text:
-            full_response += text
-            yield text
+        if response_text:
+            full_response += response_text
+            yield response_text
 
-    # ======================================
-    # Prepare User Message
-    # ======================================
-
+    # Prepare user message
     final_user_message = message
 
     if uploaded_text:
         final_user_message += uploaded_text
 
-    # ======================================
-    # Create or Update Thread
-    # ======================================
-
     now = datetime.utcnow()
 
+    # Create or update thread
     if existing:
-
         threads_collection.update_one(
             {
                 "thread_id": thread_id,
@@ -396,9 +365,7 @@ Content:
                 }
             }
         )
-
     else:
-
         threads_collection.insert_one({
             "thread_id": thread_id,
             "user_email": user_email,
@@ -413,174 +380,7 @@ Content:
             "updated_at": now,
         })
 
-    # ======================================
-    # Save Conversation
-    # ======================================
-
-    chat_document = {
-        "thread_id": thread_id,
-        "user_email": user_email,
-        "mode": mode,
-        "user_message": final_user_message,
-        "bot_response": full_response,
-        "created_at": now,
-    }
-
-    if file:
-        chat_document["file_name"] = file.filename
-        chat_document["file_type"] = file.content_type
-
-        if file_url:
-            chat_document["file_url"] = file_url
-
-    chat_collection.insert_one(chat_document)
-
-    # ======================================
-    # Load Only This User's Conversation
-    # ======================================
-
-    previous_chats = list(
-        chat_collection.find(
-            {
-                "thread_id": thread_id,
-                "user_email": user_email
-            }
-        ).sort("created_at", 1)
-    )
-
-    history = ""
-
-    for chat in previous_chats:
-        history += f"""
-
-User:
-{chat.get("user_message", "")}
-
-Assistant:
-{chat.get("bot_response", "")}
-
-"""
-
-    # ======================================
-    # Build Prompt
-    # ======================================
-
-    prompt = build_prompt(
-        mode,
-        history,
-        message,
-    )
-
-    # ======================================
-    # Process Uploaded File
-    # ======================================
-
-    uploaded_text = None
-    contents = [prompt]
-
-    if file:
-        parsed_file = read_uploaded_file(file)
-
-        if isinstance(parsed_file, Image.Image):
-            contents = [
-                prompt,
-                parsed_file,
-            ]
-
-        else:
-            uploaded_text = f"""
-
-UPLOADED FILE:
-
-Filename:
-{file.filename}
-
-Content:
-{parsed_file}
-
-"""
-
-            contents = [
-                prompt + uploaded_text
-            ]
-
-    # ======================================
-    # Generate Gemini Response
-    # ======================================
-
-    stream = client.models.generate_content_stream(
-        model="gemini-2.5-flash",
-        contents=contents,
-    )
-
-    full_response = ""
-
-    for chunk in stream:
-        text = getattr(chunk, "text", None)
-
-        if text:
-            full_response += text
-            yield text
-
-    # ======================================
-    # Prepare User Message
-    # ======================================
-
-    final_user_message = message
-
-    if uploaded_text:
-        final_user_message += uploaded_text
-
-    # ======================================
-    # Create or Update User's Thread
-    # ======================================
-
-    existing = threads_collection.find_one(
-        {
-            "thread_id": thread_id,
-            "user_email": user_email
-        }
-    )
-
-    now = datetime.utcnow()
-
-    if existing:
-
-        threads_collection.update_one(
-            {
-                "thread_id": thread_id,
-                "user_email": user_email
-            },
-            {
-                "$set": {
-                    "mode": mode,
-                    "updated_at": now,
-                }
-            }
-        )
-
-    else:
-
-        threads_collection.insert_one(
-            {
-                "thread_id": thread_id,
-                "user_email": user_email,
-                "title": (
-                    message[:40]
-                    if message.strip()
-                    else "New Chat"
-                ),
-                "mode": mode,
-                "status": "active",
-                "created_at": now,
-                "updated_at": now,
-            }
-        )
-
-    # ======================================
-    # Save Conversation With User Ownership
-    # ======================================
-
+    # Save conversation once
     chat_document = {
         "thread_id": thread_id,
         "user_email": user_email,
