@@ -7,6 +7,7 @@ import ChatArea from "../components/ChatArea";
 import ChatInput from "../components/ChatInput";
 
 import { useAuth } from "../context/AuthContext";
+import api from "../api/api";
 
 import {
   getThreads,
@@ -105,7 +106,7 @@ function Home() {
           role: "user",
           content: chat.user_message,
           image: chat.file_url
-            ? `http://127.0.0.1:8000${chat.file_url}`
+            ? `${api.defaults.baseURL.replace(/\/+$/, "")}${chat.file_url}`
             : null,
           fileName: chat.file_name || null,
           fileType: chat.file_type || null,

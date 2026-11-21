@@ -8,10 +8,13 @@ import {
   Code2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import api from "../api/api";
 
 function ChatArea({ messages = [], loading, onAction }) {
   const messagesEndRef = useRef(null);
   const [copied, setCopied] = useState(false);
+
+  const API_BASE_URL = (api.defaults.baseURL || "").replace(/\/+$/, "");
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -31,23 +34,23 @@ function ChatArea({ messages = [], loading, onAction }) {
 
   return (
     <div
-    className="relative isolate flex-1 min-w-0 overflow-y-auto h-full transition-colors duration-300"
+      className="relative isolate flex-1 min-w-0 overflow-y-auto h-full transition-colors duration-300"
       style={{
         backgroundColor: "var(--bg)",
         color: "var(--text-primary)",
       }}
     >
       {/* Animated Aurora Background */}
-<div className="chat-ambient" aria-hidden="true">
-  <div className="chat-orb chat-orb-one" />
-  <div className="chat-orb chat-orb-two" />
-  <div className="chat-orb chat-orb-three" />
-</div>
+      <div className="chat-ambient" aria-hidden="true">
+        <div className="chat-orb chat-orb-one" />
+        <div className="chat-orb chat-orb-two" />
+        <div className="chat-orb chat-orb-three" />
+      </div>
+
       <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 py-6 min-h-full flex flex-col">
         {/* Welcome Screen */}
         {messages.length === 0 && !loading && (
           <div className="flex-1 flex flex-col items-center justify-center text-center pb-16">
-
             <div className="mb-6">
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center"
@@ -98,7 +101,7 @@ function ChatArea({ messages = [], loading, onAction }) {
                             msg.image.startsWith("blob:") ||
                             msg.image.startsWith("http")
                               ? msg.image
-                              : `http://127.0.0.1:8000${msg.image}`
+                              : `${API_BASE_URL}${msg.image}`
                           }
                           alt={msg.fileName || "Uploaded file"}
                           className="max-w-full sm:max-w-sm max-h-72 object-contain rounded-xl mb-3"
@@ -123,7 +126,6 @@ function ChatArea({ messages = [], loading, onAction }) {
 
               return (
                 <div key={idx} className="flex items-start gap-3 sm:gap-4">
-
                   {/* AI Avatar */}
                   <div
                     className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
@@ -135,7 +137,6 @@ function ChatArea({ messages = [], loading, onAction }) {
                   </div>
 
                   <div className="flex-1 min-w-0 pt-1">
-
                     <div
                       className="font-semibold text-sm mb-3"
                       style={{ color: "var(--text-primary)" }}
