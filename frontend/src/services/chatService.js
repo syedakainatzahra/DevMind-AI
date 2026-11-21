@@ -4,6 +4,10 @@ import api from "../api/api";
 const GUEST_THREAD_KEY = "devmind_guest_thread";
 const GUEST_MESSAGES_KEY = "devmind_guest_messages";
 
+const API_BASE_URL = (
+  process.env.REACT_APP_API_URL || ""
+).replace(/\/+$/, "");
+
 // ======================================
 // Guest Chat Helpers
 // ======================================
@@ -65,6 +69,10 @@ export const getThreadMessages = async (id) => {
 // ======================================
 
 export const sendMessage = async (data, onChunk) => {
+  if (!API_BASE_URL) {
+    throw new Error("Backend API URL is not configured.");
+  }
+
   const formData = new FormData();
 
   formData.append("thread_id", data.thread_id || "");
@@ -79,12 +87,12 @@ export const sendMessage = async (data, onChunk) => {
 
   const headers = {};
 
-  if (token) {
+  if (token && token !== "undefined" && token !== "null") {
     headers.Authorization = `Bearer ${token}`;
   }
 
   const response = await fetch(
-    "http://127.0.0.1:8000/chat",
+    `${API_BASE_URL}/chat`,
     {
       method: "POST",
       headers,
@@ -123,7 +131,6 @@ export const sendMessage = async (data, onChunk) => {
     }
   }
 
-  // Flush remaining decoded content
   fullResponse += decoder.decode();
 
   // ======================================
