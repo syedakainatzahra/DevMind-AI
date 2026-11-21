@@ -27,7 +27,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
-
+@app.get("/")
+def root():
+    return {
+        "message": "DevMind AI Backend is running!",
+        "status": "success"
+    }
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
